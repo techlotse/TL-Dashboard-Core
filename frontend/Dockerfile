@@ -20,7 +20,7 @@ RUN npm run build
 FROM nginx:1.27-alpine AS runtime
 
 LABEL org.opencontainers.image.title="TL-Dashboard Frontend"
-LABEL org.opencontainers.image.version="0.0.1"
+LABEL org.opencontainers.image.version="0.2.0"
 LABEL org.opencontainers.image.description="Family home dashboard — React frontend"
 
 COPY --from=builder /app/dist /usr/share/nginx/html

@@ -15,7 +15,7 @@ RUN npm run build
 FROM node:20-alpine AS runtime
 
 LABEL org.opencontainers.image.title="TL-Dashboard Backend"
-LABEL org.opencontainers.image.version="0.0.1"
+LABEL org.opencontainers.image.version="0.2.0"
 LABEL org.opencontainers.image.description="Family home dashboard — API backend"
 
 WORKDIR /app

@@ -2,19 +2,22 @@
 
 ## Overview
 
-TL-Dashboard is a two-container Docker application:
-
-- **Backend** — Node.js / Express API that fetches and caches data from external sources, then serves it as JSON
-- **Frontend** — React + Vite single-page app served by nginx, which also reverse-proxies `/api/*` requests to the backend
+TL-Dashboard runs as a **single Docker container**. The Node.js/Express backend serves everything: API routes, background images, and the compiled React SPA.
 
 ```
 Browser
   │
-  └─► nginx :80
-        ├─ /api/*     → proxy → backend :3001
-        ├─ /backgrounds/* → static files (volume-mounted photos)
-        └─ /*         → SPA (index.html)
+  └─► Express :3001
+        ├─ /api/*          → API handlers (weather, transport, calendar…)
+        ├─ /backgrounds/*  → static files (volume-mounted photos)
+        └─ /*              → React SPA (built assets + index.html fallback)
 ```
+
+The Docker image is built in three stages:
+
+1. **frontend-build** — `node:20-alpine`, runs `vite build`, produces `dist/`
+2. **backend-build** — `node:20-alpine`, runs `tsc`, produces `dist/`
+3. **runtime** — `node:20-alpine`, copies backend `dist/` → `/app/dist`, frontend `dist/` → `/app/public`, production `node_modules` only
 
 ---
 
@@ -24,7 +27,8 @@ Browser
 TL-Dashboard-Core/
 ├── .github/
 │   └── workflows/
-│       └── docker-build-push.yml   Multi-arch CI build → DockerHub
+│       └── docker-build-push.yml   Multi-arch CI build → DockerHub (single image)
+├── Dockerfile                      Multi-stage root Dockerfile (frontend + backend → one image)
 ├── backend/
 │   ├── src/
 │   │   ├── config.ts               Central env-var config with typed defaults

@@ -1,7 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # docker-compose.yml — TL-Dashboard
 #
-# Pulls pre-built images from DockerHub. No local build required.
+# Pulls a pre-built image from DockerHub. No local build required.
 #
 # Usage:
 #   cp .env.example .env       # configure once
@@ -14,9 +14,12 @@
 name: tl-dashboard
 
 services:
-  backend:
-    image: techlotse/tl-dashboard-core-backend:latest
+  dashboard:
+    image: techlotse/tl-dashboard-core:latest
     restart: unless-stopped
+    ports:
+      # Dashboard available at http://localhost:18181
+      - "18181:3001"
     env_file:
       - path: .env
         required: false
@@ -31,36 +34,9 @@ services:
       # ── Google service account key (optional) ─────────────────────────────
       # Uncomment and update the path if using a Google service account JSON:
       # - /path/to/your/service-account-key.json:/run/secrets/google_sa_key.json:ro
-    networks:
-      - dashboard
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
-
-  frontend:
-    image: techlotse/tl-dashboard-core-frontend:latest
-    restart: unless-stopped
-    ports:
-      # Dashboard is available at http://localhost:18181
-      - "18181:80"
-    volumes:
-      # Serve background images as static files through nginx
-      - ./backgrounds:/usr/share/nginx/html/backgrounds:ro
-    depends_on:
-      backend:
-        condition: service_healthy
-    networks:
-      - dashboard
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-
-networks:
-  dashboard:
-    driver: bridge

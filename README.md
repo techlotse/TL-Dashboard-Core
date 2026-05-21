@@ -1,6 +1,6 @@
 # TL-Dashboard
 
-[![Version](https://img.shields.io/badge/version-v0.1.0-blue)](https://github.com/techlotse/TL-Dashboard-Core/releases)
+[![Version](https://img.shields.io/badge/version-v0.2.0-blue)](https://github.com/techlotse/TL-Dashboard-Core/releases)
 [![Build](https://github.com/techlotse/TL-Dashboard-Core/actions/workflows/docker-build-push.yml/badge.svg)](https://github.com/techlotse/TL-Dashboard-Core/actions/workflows/docker-build-push.yml)
 [![Docker](https://img.shields.io/badge/DockerHub-techlotse%2Ftl--dashboard--core-blue?logo=docker)](https://hub.docker.com/r/techlotse/tl-dashboard-core-backend)
 

@@ -35,8 +35,6 @@ app.use('/api/calendar',    calendarRouter);
 app.use('/api/holidays',    holidaysRouter);
 app.use('/api/rss',         rssRouter);
 
-// Background images are served directly by nginx from the mounted folder.
-// This route only handles the GET / list endpoint.
 app.use('/api/backgrounds', backgroundsRouter);
 
 // ── Config endpoint (non-sensitive) ─────────────────────────────────────────
@@ -58,19 +56,24 @@ app.get('/api/config', (_req, res) => {
   });
 });
 
-// ── Serve frontend in production ─────────────────────────────────────────────
-// When built, the frontend dist is copied to /app/frontend/dist inside the container.
-const frontendDist = path.resolve(__dirname, '../../frontend/dist');
-if (process.env.SERVE_FRONTEND === 'true') {
-  app.use(express.static(frontendDist));
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
-  });
-}
-
-// ── 404 handler ─────────────────────────────────────────────────────────────
-app.use((_req, res) => {
+// ── API 404 — catch unmatched /api/* before static fallback ──────────────────
+app.use('/api', (_req, res) => {
   res.status(404).json({ error: 'Not found' });
+});
+
+// ── Static: background images ─────────────────────────────────────────────────
+// Served at /backgrounds/<filename> from the volume-mounted folder.
+app.use('/backgrounds', express.static(config.backgrounds.path, { maxAge: '1h' }));
+
+// ── Static: React SPA ─────────────────────────────────────────────────────────
+// In the Docker image the frontend build is copied to /app/public.
+// Locally (dev) this folder won't exist, which is fine — Express skips it silently.
+const frontendDist = path.resolve(__dirname, '../public');
+app.use(express.static(frontendDist, { maxAge: '1y', immutable: true, index: false }));
+
+// SPA fallback — any unmatched GET returns index.html
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'));
 });
 
 // ── Global error handler ─────────────────────────────────────────────────────

@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# CI — Build and push TL-Dashboard Docker images to DockerHub
+# CI — Build and push TL-Dashboard Docker image to DockerHub
 #
 # Triggers:
 #   - Push to main branch
@@ -7,11 +7,11 @@
 #   - Pull requests against main (build only — no push)
 #
 # Required GitHub organisation variables (Settings → Variables → Organisation):
-#   DOCKER_REPO   — DockerHub image base name, e.g. techlotse/tl-dashboard-core
+#   DOCKER_REPO   — DockerHub image name, e.g. techlotse/tl-dashboard-core
 #
 # Required GitHub organisation secrets (Settings → Secrets → Organisation):
-#   DOCKERHUB_USERNAME   — DockerHub username
-#   DOCKERHUB_TOKEN      — DockerHub access token
+#   ORG_DOCKERHUB_USER   — DockerHub username
+#   ORG_DOCKERHUB_KEY    — DockerHub access token (Read, Write, Delete scope)
 #                          Create at: https://hub.docker.com/settings/security
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -28,17 +28,14 @@ on:
       - main
 
 env:
-  REGISTRY: docker.io
-  BACKEND_IMAGE:  ${{ vars.DOCKER_REPO || 'techlotse/tl-dashboard-core' }}-backend
-  FRONTEND_IMAGE: ${{ vars.DOCKER_REPO || 'techlotse/tl-dashboard-core' }}-frontend
+  IMAGE: ${{ vars.DOCKER_REPO || 'techlotse/tl-dashboard-core' }}
 
 jobs:
-  build-backend:
-    name: Backend — Build & Push
+  build:
+    name: Build & Push
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
 
     steps:
       - name: Checkout
@@ -61,7 +58,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.BACKEND_IMAGE }}
+          images: ${{ env.IMAGE }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -69,11 +66,11 @@ jobs:
             type=sha,prefix=sha-,format=short
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push backend
+      - name: Build and push
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: .
+          file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -81,55 +78,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  build-frontend:
-    name: Frontend — Build & Push
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Log in to DockerHub
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.ORG_DOCKERHUB_USER }}
-          password: ${{ secrets.ORG_DOCKERHUB_KEY }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.FRONTEND_IMAGE }}
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=ref,event=branch
-            type=sha,prefix=sha-,format=short
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: Build and push frontend
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frontend
-          file: ./frontend/Dockerfile
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # Lightweight smoke-test that runs on PRs (no push, no secrets needed)
+  # Lightweight smoke-test on PRs (no push, no secrets needed)
   validate:
     name: Validate Compose
     runs-on: ubuntu-latest
