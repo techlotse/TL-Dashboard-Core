@@ -29,8 +29,8 @@ on:
 
 env:
   REGISTRY: docker.io
-  BACKEND_IMAGE:  ${{ vars.DOCKER_REPO }}-backend
-  FRONTEND_IMAGE: ${{ vars.DOCKER_REPO }}-frontend
+  BACKEND_IMAGE:  ${{ vars.DOCKER_REPO || 'techlotse/tl-dashboard-core' }}-backend
+  FRONTEND_IMAGE: ${{ vars.DOCKER_REPO || 'techlotse/tl-dashboard-core' }}-frontend
 
 jobs:
   build-backend:
