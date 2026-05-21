@@ -1,0 +1,64 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# docker-compose.yml — TL-Dashboard
+#
+# Pulls pre-built images from DockerHub. No local build required.
+#
+# Usage:
+#   cp .env.example .env       # configure once
+#   docker compose up -d       # start
+#   docker compose pull        # update to latest
+#   docker compose down        # stop
+#
+# Open http://localhost:18181 in a browser.
+# ─────────────────────────────────────────────────────────────────────────────
+name: tl-dashboard
+
+services:
+  backend:
+    image: techlotse/tl-dashboard-core-backend:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+    volumes:
+      # ── Background images ─────────────────────────────────────────────────
+      # Place your .jpg/.jpeg/.png/.webp photos in ./backgrounds/
+      - ./backgrounds:/app/backgrounds:ro
+
+      # ── Google service account key (optional) ─────────────────────────────
+      # Uncomment and update the path if using a Google service account JSON:
+      # - /path/to/your/service-account-key.json:/run/secrets/google_sa_key.json:ro
+    networks:
+      - dashboard
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  frontend:
+    image: techlotse/tl-dashboard-core-frontend:latest
+    restart: unless-stopped
+    ports:
+      # Dashboard is available at http://localhost:18181
+      - "18181:80"
+    volumes:
+      # Serve background images as static files through nginx
+      - ./backgrounds:/usr/share/nginx/html/backgrounds:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - dashboard
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+networks:
+  dashboard:
+    driver: bridge

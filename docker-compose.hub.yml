@@ -1,0 +1,6 @@
+# This file has been consolidated into docker-compose.yml (as of v0.1.0).
+#
+# Use:  docker compose up -d
+#
+# docker-compose.hub.yml is kept only for backwards compatibility
+# and will be removed in a future release.

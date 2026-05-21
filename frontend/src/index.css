@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html, body, #root {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #0a0e1a;
+    color: #e8eaf0;
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply bg-[rgba(10,14,26,0.18)] border border-white/[0.10] rounded-2xl;
+  }
+  .panel-tight {
+    @apply bg-[rgba(10,14,26,0.18)] border border-white/[0.10] rounded-xl;
+  }
+  .text-dim {
+    @apply text-white/50;
+  }
+  .text-subtle {
+    @apply text-white/30;
+  }
+  .badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium;
+  }
+}
+
+/* Scrollbar hide */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Background crossfade */
+@keyframes bgFadeIn {
+  0%   { opacity: 0; }
+  15%  { opacity: 1; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+.bg-slide {
+  animation: bgFadeIn var(--slide-duration, 12s) ease-in-out forwards;
+}
