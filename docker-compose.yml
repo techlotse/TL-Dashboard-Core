@@ -17,7 +17,9 @@ services:
   backend:
     image: techlotse/tl-dashboard-core-backend:latest
     restart: unless-stopped
-    env_file: .env
+    env_file:
+      - path: .env
+        required: false
     environment:
       NODE_ENV: production
       PORT: 3001
