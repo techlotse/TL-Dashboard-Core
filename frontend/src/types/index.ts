@@ -1,18 +1,53 @@
 // ── API response types ────────────────────────────────────────────────────────
 
 export interface AppConfig {
+  // configurable from settings panel
   timezone: string;
   stationName: string;
+  weatherLat: string;
+  weatherLon: string;
+  commuteToStation: string;
+  calendarIcalUrl: string;
+  calendarDisplayDays: number;
+  holidayCountry: string;
+  holidayTown1: string;
+  holidayTown2: string;
+  holidaysMaxItems: number;
+  rssFeeds: string;
+  rssItemDurationSeconds: number;
+  backgroundIntervalSeconds: number;
+  metarIcao: string;
+  // read-only (env-var only)
   refreshWeatherMinutes: number;
   refreshTransportSeconds: number;
   refreshCalendarMinutes: number;
   refreshRssMinutes: number;
-  holidayTown1: string;
-  holidayTown2: string;
-  backgroundIntervalSeconds: number;
-  rssItemDurationSeconds: number;
-  holidaysMaxItems: number;
-  calendarDisplayDays: number;
+  metarRefreshMinutes: number;
+}
+
+// Settings saved via /api/settings
+export type SavedSettings = Partial<Omit<AppConfig,
+  'refreshWeatherMinutes'|'refreshTransportSeconds'|
+  'refreshCalendarMinutes'|'refreshRssMinutes'|'metarRefreshMinutes'
+>>;
+
+// METAR
+export interface SkyLayer { cover: string; base: number | null; }
+export interface MetarData {
+  icao: string;
+  rawText: string;
+  obsTime: string;
+  temp: number | null;
+  dewp: number | null;
+  wdir: number | null;
+  wspd: number | null;
+  wgst: number | null;
+  visib: string;
+  altim: number | null;
+  wx: string | null;
+  skyConditions: SkyLayer[];
+  flightCategory: string;
+  fetchedAt: string;
 }
 
 // Weather

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { format, toZonedTime } from 'date-fns-tz';
+import { Settings } from 'lucide-react';
 import { AppConfig } from '../types';
 
 interface Props {
   config: AppConfig;
+  onSettingsOpen?: () => void;
 }
 
-export default function Clock({ config }: Props) {
+export default function Clock({ config, onSettingsOpen }: Props) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function Clock({ config }: Props) {
   const dateStr = format(zoned, 'EEEE, d MMMM yyyy', { timeZone: tz });
 
   return (
-    <div className="flex flex-col items-end select-none">
+    <div className="flex flex-col items-end select-none w-full">
       {/* Time */}
       <div className="flex items-baseline gap-1">
         <span className="text-7xl font-light tabular-nums tracking-tight leading-none text-white">
@@ -32,9 +34,20 @@ export default function Clock({ config }: Props) {
           {secsStr}
         </span>
       </div>
-      {/* Date */}
-      <div className="text-lg font-normal text-white/60 mt-1 tracking-wide">
-        {dateStr}
+      {/* Date + settings gear */}
+      <div className="flex items-center gap-2 mt-1">
+        <div className="text-lg font-normal text-white/60 tracking-wide">
+          {dateStr}
+        </div>
+        {onSettingsOpen && (
+          <button
+            onClick={onSettingsOpen}
+            className="text-white/20 hover:text-white/60 transition-colors"
+            aria-label="Clock settings"
+          >
+            <Settings size={12} strokeWidth={2} />
+          </button>
+        )}
       </div>
     </div>
   );

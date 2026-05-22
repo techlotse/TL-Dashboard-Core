@@ -1,10 +1,11 @@
-import { Calendar, MapPin, Clock } from 'lucide-react';
+import { Calendar, MapPin, Clock, Settings } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow, startOfDay, isValid } from 'date-fns';
 import { FetchState, CalendarData, CalendarEvent } from '../types';
 
 interface Props {
   state: FetchState<CalendarData>;
   displayDays?: number;
+  onSettingsOpen?: () => void;
 }
 
 // Google Calendar colour IDs → Tailwind border colours
@@ -91,12 +92,17 @@ function Skeleton() {
   );
 }
 
-export default function CalendarWidget({ state, displayDays = 14 }: Props) {
+export default function CalendarWidget({ state, displayDays = 14, onSettingsOpen }: Props) {
   return (
     <div className="panel p-4 h-full flex flex-col gap-3">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex items-center gap-1.5">
         <Calendar size={12} strokeWidth={2} />
         Calendar
+        {onSettingsOpen && (
+          <button onClick={onSettingsOpen} className="ml-auto text-white/20 hover:text-white/60 transition-colors" aria-label="Calendar settings">
+            <Settings size={11} strokeWidth={2} />
+          </button>
+        )}
       </h2>
 
       {state.status === 'loading' || state.status === 'idle' ? (

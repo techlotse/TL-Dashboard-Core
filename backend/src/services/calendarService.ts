@@ -18,6 +18,7 @@ import ical from 'node-ical';
 import { google } from 'googleapis';
 import fs from 'fs';
 import { config } from '../config';
+import { getEffectiveConfig } from './settingsService';
 import { getCache, withCache } from './cache';
 import { logger } from '../logger';
 
@@ -156,8 +157,9 @@ async function fetchFromGoogleApi(calendarId: string): Promise<CalendarEvent[]> 
 
 // ── Public entry point ─────────────────────────────────────────────────────────
 export async function fetchCalendarEvents(): Promise<CalendarData> {
-  // Determine which source to use
-  const icalUrl   = config.calendar.icalUrl;
+  // Determine which source to use — UI-saved settings override env defaults
+  const cfg = getEffectiveConfig();
+  const icalUrl    = cfg.calendarIcalUrl || config.calendar.icalUrl;
   const calendarId = config.calendar.calendarId;
 
   if (!icalUrl && !calendarId) {

@@ -1,10 +1,11 @@
-import { Wind, Droplets, Thermometer, Sunrise, Sunset } from 'lucide-react';
+import { Wind, Droplets, Thermometer, Sunrise, Sunset, Settings } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { FetchState, WeatherData } from '../types';
 import WeatherIcon from './WeatherIcon';
 
 interface Props {
   state: FetchState<WeatherData>;
+  onSettingsOpen?: () => void;
 }
 
 function Skeleton() {
@@ -37,10 +38,17 @@ function shortTime(isoStr: string): string {
   catch { return ''; }
 }
 
-export default function Weather({ state }: Props) {
+export default function Weather({ state, onSettingsOpen }: Props) {
   return (
     <div className="panel p-4 h-full flex flex-col gap-3">
-      <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40">Weather</h2>
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex-1">Weather</h2>
+        {onSettingsOpen && (
+          <button onClick={onSettingsOpen} className="text-white/20 hover:text-white/60 transition-colors" aria-label="Weather settings">
+            <Settings size={11} strokeWidth={2} />
+          </button>
+        )}
+      </div>
 
       {state.status === 'loading' || state.status === 'idle' ? (
         <Skeleton />

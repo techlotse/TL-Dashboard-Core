@@ -5,6 +5,7 @@
  */
 import axios from 'axios';
 import { config } from '../config';
+import { getEffectiveConfig } from './settingsService';
 import { getCache, withCache } from './cache';
 import { logger } from '../logger';
 
@@ -204,8 +205,9 @@ async function fetchCommuteWindow(
 }
 
 async function fetchCommuteData(): Promise<CommuteData | null> {
-  const from = (config.commute.fromStation || config.transport.stationName).trim();
-  const to = config.commute.toStation.trim();
+  const cfg = getEffectiveConfig();
+  const from = (config.commute.fromStation || cfg.stationName).trim();
+  const to = (cfg.commuteToStation || config.commute.toStation).trim();
 
   if (!config.commute.enabled || !from || !to) return null;
 
@@ -242,18 +244,20 @@ async function fetchCommuteData(): Promise<CommuteData | null> {
 }
 
 export async function fetchDepartures(): Promise<TransportData> {
-  return withCache(cache, 'departures', async () => {
-    logger.info(`Fetching departures for station: ${config.transport.stationName}`);
+  const cfg = getEffectiveConfig();
+  const stationName = cfg.stationName;
+  return withCache(cache, `departures-${stationName}`, async () => {
+    logger.info(`Fetching departures for station: ${stationName}`);
 
     // Step 1: resolve station ID
     const stationRes = await axios.get(`${BASE_URL}/locations`, {
-      params: { query: config.transport.stationName, type: 'station' },
+      params: { query: stationName, type: 'station' },
       timeout: 10000,
     });
 
     const stations = stationRes.data?.stations;
     if (!stations || stations.length === 0) {
-      throw new Error(`Station not found: ${config.transport.stationName}`);
+      throw new Error(`Station not found: ${stationName}`);
     }
 
     const station = stations[0];

@@ -101,4 +101,15 @@ export const config = {
     // Seconds between photo changes
     intervalSeconds: optionalNumber('BACKGROUND_INTERVAL_SECONDS', 15),
   },
+
+  // ── METAR (Aviation Weather Center — no API key required) ────────────────
+  metar: {
+    icao: optional('METAR_ICAO', 'LSZH'),
+    refreshMinutes: optionalNumber('METAR_REFRESH_MINUTES', 30),
+  },
+
+  // ── Persistent settings storage ──────────────────────────────────────────
+  data: {
+    path: optional('DATA_PATH', '/app/data'),
+  },
 };

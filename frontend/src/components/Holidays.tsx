@@ -1,4 +1,4 @@
-import { PartyPopper } from 'lucide-react';
+import { PartyPopper, Settings } from 'lucide-react';
 import { format, parseISO, differenceInDays, isToday } from 'date-fns';
 import { FetchState, HolidayData, PublicHoliday } from '../types';
 
@@ -7,6 +7,7 @@ interface Props {
   town1?: string;
   town2?: string;
   maxItems?: number;
+  onSettingsOpen?: () => void;
 }
 
 function daysUntil(dateStr: string): number {
@@ -66,12 +67,17 @@ function Skeleton() {
   );
 }
 
-export default function Holidays({ state, town1, town2, maxItems = 8 }: Props) {
+export default function Holidays({ state, town1, town2, maxItems = 8, onSettingsOpen }: Props) {
   return (
     <div className="panel p-4 h-full flex flex-col gap-3">
       <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex items-center gap-1.5">
         <PartyPopper size={12} strokeWidth={2} />
         Public Holidays
+        {onSettingsOpen && (
+          <button onClick={onSettingsOpen} className="ml-auto text-white/20 hover:text-white/60 transition-colors" aria-label="Holidays settings">
+            <Settings size={11} strokeWidth={2} />
+          </button>
+        )}
       </h2>
 
       {state.status === 'loading' || state.status === 'idle' ? (

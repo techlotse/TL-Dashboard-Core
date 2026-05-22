@@ -1,9 +1,10 @@
-import { Train, Clock, AlertTriangle, Ban, Route, ArrowRight, Briefcase, Home } from 'lucide-react';
+import { Train, Clock, AlertTriangle, Ban, Route, ArrowRight, Briefcase, Home, Settings } from 'lucide-react';
 import { format, parseISO, isToday, isTomorrow } from 'date-fns';
 import { FetchState, TransportData, Departure, CommuteConnection, CommuteWindow } from '../types';
 
 interface Props {
   state: FetchState<TransportData>;
+  onSettingsOpen?: () => void;
 }
 
 function depTime(dep: Departure): string {
@@ -155,11 +156,11 @@ function Skeleton() {
   );
 }
 
-export default function Transport({ state }: Props) {
+export default function Transport({ state, onSettingsOpen }: Props) {
   return (
     <div className="panel p-4 h-full flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex items-center gap-1.5">
+      <div className="flex items-center gap-1.5">
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex items-center gap-1.5 flex-1">
           <Route size={12} strokeWidth={2} />
           SBB
         </h2>
@@ -168,6 +169,11 @@ export default function Transport({ state }: Props) {
             <Train size={11} strokeWidth={1.5} />
             {state.data.stationName}
           </span>
+        )}
+        {onSettingsOpen && (
+          <button onClick={onSettingsOpen} className="text-white/20 hover:text-white/60 transition-colors" aria-label="Transport settings">
+            <Settings size={11} strokeWidth={2} />
+          </button>
         )}
       </div>
 

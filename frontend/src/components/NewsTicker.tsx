@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
-import { Rss } from 'lucide-react';
+import { Rss, Settings } from 'lucide-react';
 import { FetchState, RssData } from '../types';
 
 interface Props {
   state: FetchState<RssData>;
   /** How long each headline is shown, in milliseconds. Default: 10 000 (10 s) */
   itemDurationMs?: number;
+  onSettingsOpen?: () => void;
 }
 
 const FADE_MS = 400; // crossfade duration
 
-export default function NewsTicker({ state, itemDurationMs = 10_000 }: Props) {
+export default function NewsTicker({ state, itemDurationMs = 10_000, onSettingsOpen }: Props) {
   const items =
     state.status === 'success'
       ? state.data.items.filter((i) => i.title.length > 0)
@@ -73,6 +74,11 @@ export default function NewsTicker({ state, itemDurationMs = 10_000 }: Props) {
         <div className="shrink-0 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-white/40">
           <Rss size={11} strokeWidth={2} />
           News
+          {onSettingsOpen && (
+            <button onClick={onSettingsOpen} className="text-white/20 hover:text-white/60 transition-colors ml-0.5" aria-label="News settings">
+              <Settings size={11} strokeWidth={2} />
+            </button>
+          )}
         </div>
         <div className="w-px h-4 bg-white/10 shrink-0" />
 

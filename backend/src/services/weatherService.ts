@@ -5,6 +5,7 @@
  */
 import axios from 'axios';
 import { config } from '../config';
+import { getEffectiveConfig } from './settingsService';
 import { getCache, withCache } from './cache';
 import { logger } from '../logger';
 
@@ -81,13 +82,15 @@ export interface WeatherData {
 const cache = getCache('weather', config.weather.refreshMinutes * 60);
 
 export async function fetchWeather(): Promise<WeatherData> {
-  return withCache(cache, 'weather', async () => {
-    logger.info(`Fetching weather for lat=${config.weather.lat}, lon=${config.weather.lon}`);
+  const cfg = getEffectiveConfig();
+  const cacheKey = `weather-${cfg.weatherLat}-${cfg.weatherLon}`;
+  return withCache(cache, cacheKey, async () => {
+    logger.info(`Fetching weather for lat=${cfg.weatherLat}, lon=${cfg.weatherLon}`);
 
     const { data } = await axios.get(BASE_URL, {
       params: {
-        latitude: config.weather.lat,
-        longitude: config.weather.lon,
+        latitude: cfg.weatherLat,
+        longitude: cfg.weatherLon,
         hourly: [
           'temperature_2m',
           'relative_humidity_2m',
@@ -175,7 +178,7 @@ export async function fetchWeather(): Promise<WeatherData> {
       },
       today: todayHourly,
       forecast,
-      location: { lat: config.weather.lat, lon: config.weather.lon },
+      location: { lat: cfg.weatherLat, lon: cfg.weatherLon },
       fetchedAt: new Date().toISOString(),
     };
   });

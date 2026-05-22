@@ -6,6 +6,8 @@ import CalendarWidget from './components/CalendarWidget';
 import Holidays from './components/Holidays';
 import NewsTicker from './components/NewsTicker';
 import Background from './components/Background';
+import MetarWidget from './components/MetarWidget';
+import SettingsPanel from './components/SettingsPanel';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
 import {
   AppConfig,
@@ -15,28 +17,39 @@ import {
   HolidayData,
   RssData,
   BackgroundData,
+  MetarData,
 } from './types';
 
 // Default config — overridden once /api/config loads
 const DEFAULT_CONFIG: AppConfig = {
   timezone: 'Europe/Zurich',
   stationName: 'Station',
+  weatherLat: '47.3769',
+  weatherLon: '8.5417',
+  commuteToStation: '',
+  calendarIcalUrl: '',
+  calendarDisplayDays: 14,
+  holidayCountry: 'CH',
+  holidayTown1: '',
+  holidayTown2: '',
+  holidaysMaxItems: 8,
+  rssFeeds: 'https://feeds.bbci.co.uk/news/world/rss.xml',
+  rssItemDurationSeconds: 10,
+  backgroundIntervalSeconds: 15,
+  metarIcao: 'LSZH',
   refreshWeatherMinutes: 30,
   refreshTransportSeconds: 60,
   refreshCalendarMinutes: 5,
   refreshRssMinutes: 10,
-  holidayTown1: '',
-  holidayTown2: '',
-  backgroundIntervalSeconds: 15,
-  rssItemDurationSeconds: 10,
-  holidaysMaxItems: 8,
-  calendarDisplayDays: 14,
+  metarRefreshMinutes: 30,
 };
 
 const API = '/api';
 
 export default function App() {
   const [appConfig, setAppConfig] = useState<AppConfig>(DEFAULT_CONFIG);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsWidget, setSettingsWidget] = useState<string>('weather');
 
   // Load server config once on mount
   useEffect(() => {
@@ -45,6 +58,11 @@ export default function App() {
       .then((cfg: AppConfig) => setAppConfig(cfg))
       .catch(() => {/* use defaults */});
   }, []);
+
+  function openSettings(widget: string) {
+    setSettingsWidget(widget);
+    setSettingsOpen(true);
+  }
 
   // ── Data fetches ──────────────────────────────────────────────────────────
   const weather = useAutoRefresh<WeatherData>(
@@ -74,7 +92,12 @@ export default function App() {
 
   const backgrounds = useAutoRefresh<BackgroundData>(
     `${API}/backgrounds`,
-    5 * 60 * 1000, // refresh list every 5 minutes
+    5 * 60 * 1000,
+  );
+
+  const metar = useAutoRefresh<MetarData>(
+    `${API}/metar`,
+    appConfig.metarRefreshMinutes * 60 * 1000,
   );
 
   return (
@@ -88,12 +111,14 @@ export default function App() {
       {/* ── Main layout grid ─────────────────────────────────────────────── */}
       {/*
         3-column kiosk layout:
-        ┌──────────┬──────────────────────┬──────────────┐
-        │ Weather  │       SBB            │  22:22:ss    │
-        ├──────────┤  departures/commute  ├──────────────┤
-        │ Calendar │                      │  Holidays    │
-        └──────────┴──────────────────────┴──────────────┘
-        └──────────────────── NEWS TICKER ──────────────────────────────┘
+        ┌──────────┬──────────────────────┬────────────────┐
+        │ Weather  │       SBB            │  22:22:ss      │
+        ├──────────┤  departures/commute  ├────────────────┤
+        │ Calendar │                      │  Holidays      │
+        │          │                      ├────────────────┤
+        │          │                      │  METAR         │
+        └──────────┴──────────────────────┴────────────────┘
+        └──────────────────── NEWS TICKER ─────────────────────┘
       */}
       <div className="absolute inset-0 z-10 p-4 pb-14">
         <div className="mx-auto grid h-full min-h-0 max-w-[1480px] grid-cols-[minmax(260px,330px)_minmax(420px,560px)_minmax(300px,370px)] grid-rows-[minmax(0,1fr)] justify-center gap-3">
@@ -101,34 +126,42 @@ export default function App() {
           {/* Left — Weather + Calendar */}
           <div className="min-h-0 min-w-0 flex flex-col gap-3">
             <div className="h-[360px] min-h-[320px]">
-              <Weather state={weather} />
+              <Weather state={weather} onSettingsOpen={() => openSettings('weather')} />
             </div>
             <div className="flex-1 min-h-0">
               <CalendarWidget
                 state={calendar}
                 displayDays={appConfig.calendarDisplayDays}
+                onSettingsOpen={() => openSettings('calendar')}
               />
             </div>
           </div>
 
           {/* Center — SBB board */}
           <div className="min-h-0 min-w-0 justify-self-center w-full">
-            <Transport state={transport} />
+            <Transport state={transport} onSettingsOpen={() => openSettings('transport')} />
           </div>
 
-          {/* Right — Clock + Public Holidays */}
+          {/* Right — Clock + Holidays + METAR */}
           <div className="min-h-0 min-w-0 flex flex-col gap-3">
             <div className="shrink-0">
-              <div className="panel px-5 py-4 flex items-center justify-end">
-                <Clock config={appConfig} />
+              <div className="panel px-5 py-4">
+                <Clock config={appConfig} onSettingsOpen={() => openSettings('clock')} />
               </div>
             </div>
-            <div className="flex-1 min-h-0">
+            <div className="flex-1 min-h-0 overflow-hidden">
               <Holidays
                 state={holidays}
                 town1={appConfig.holidayTown1}
                 town2={appConfig.holidayTown2}
                 maxItems={appConfig.holidaysMaxItems}
+                onSettingsOpen={() => openSettings('holidays')}
+              />
+            </div>
+            <div className="shrink-0">
+              <MetarWidget
+                state={metar}
+                onSettingsOpen={() => openSettings('metar')}
               />
             </div>
           </div>
@@ -141,8 +174,17 @@ export default function App() {
         <NewsTicker
           state={rss}
           itemDurationMs={appConfig.rssItemDurationSeconds * 1000}
+          onSettingsOpen={() => openSettings('rss')}
         />
       </div>
+
+      {/* ── Settings panel ────────────────────────────────────────────────── */}
+      <SettingsPanel
+        open={settingsOpen}
+        initialWidget={settingsWidget}
+        config={appConfig}
+        onClose={() => setSettingsOpen(false)}
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@
  */
 import axios from 'axios';
 import { config } from '../config';
+import { getEffectiveConfig } from './settingsService';
 import { getCache, withCache } from './cache';
 import { logger } from '../logger';
 
@@ -36,8 +37,7 @@ export interface HolidayData {
 
 const cache = getCache('holidays', 24 * 60 * 60); // cache 24h — holidays don't change
 
-function relevantTowns(counties: string[] | null): string[] {
-  const towns = [config.holidays.town1, config.holidays.town2].filter(Boolean);
+function relevantTowns(counties: string[] | null, towns: string[]): string[] {
   if (!towns.length) return [];
   if (!counties) return towns; // national holiday applies to all
   // county codes from API come as "CH-ZH", compare both formats
@@ -45,12 +45,10 @@ function relevantTowns(counties: string[] | null): string[] {
   return towns.filter((t) => normalised.includes(t.replace('CH-', '')));
 }
 
-async function fetchYearHolidays(year: number, country: string): Promise<PublicHoliday[]> {
+async function fetchYearHolidays(year: number, country: string, towns: string[]): Promise<PublicHoliday[]> {
   const { data } = await axios.get(`${BASE_URL}/PublicHolidays/${year}/${country}`, {
     timeout: 10000,
   });
-
-  const towns = [config.holidays.town1, config.holidays.town2].filter(Boolean);
 
   return (data as any[])
     .map((h) => ({
@@ -66,28 +64,30 @@ async function fetchYearHolidays(year: number, country: string): Promise<PublicH
       // If no towns configured, include everything
       if (!towns.length) return true;
       // Otherwise include only if the holiday applies to configured towns
-      return relevantTowns(h.counties).length > 0;
+      return relevantTowns(h.counties, towns).length > 0;
     })
     .map((h) => ({
       ...h,
-      relevantTowns: relevantTowns(h.counties),
+      relevantTowns: relevantTowns(h.counties, towns),
     }));
 }
 
 export async function fetchHolidays(): Promise<HolidayData> {
   const now = new Date();
   const currentYear = now.getFullYear();
-  const country = config.holidays.country;
+  const cfg = getEffectiveConfig();
+  const country = cfg.holidayCountry || config.holidays.country;
+  const towns = [cfg.holidayTown1 || config.holidays.town1, cfg.holidayTown2 || config.holidays.town2].filter(Boolean);
 
-  return withCache(cache, `holidays-${currentYear}`, async () => {
+  return withCache(cache, `holidays-${country}-${currentYear}`, async () => {
     logger.info(`Fetching public holidays for ${country} ${currentYear}`);
 
-    let holidays = await fetchYearHolidays(currentYear, country);
+    let holidays = await fetchYearHolidays(currentYear, country, towns);
 
     // If we're in the last two months of the year, also fetch next year
     if (now.getMonth() >= 10) {
       try {
-        const nextYear = await fetchYearHolidays(currentYear + 1, country);
+        const nextYear = await fetchYearHolidays(currentYear + 1, country, towns);
         holidays = [...holidays, ...nextYear];
       } catch (err) {
         logger.warn(`Could not prefetch next year holidays: ${err}`);

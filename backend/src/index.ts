@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { config } from './config';
 import { logger } from './logger';
+import { loadSettings, getEffectiveConfig } from './services/settingsService';
 
 import healthRouter      from './routes/health';
 import weatherRouter     from './routes/weather';
@@ -11,6 +12,11 @@ import calendarRouter    from './routes/calendar';
 import holidaysRouter    from './routes/holidays';
 import rssRouter         from './routes/rss';
 import backgroundsRouter from './routes/backgrounds';
+import metarRouter       from './routes/metar';
+import settingsRouter    from './routes/settings';
+
+// Load persisted user settings before anything else
+loadSettings();
 
 const app = express();
 
@@ -36,24 +42,13 @@ app.use('/api/holidays',    holidaysRouter);
 app.use('/api/rss',         rssRouter);
 
 app.use('/api/backgrounds', backgroundsRouter);
+app.use('/api/metar',      metarRouter);
+app.use('/api/settings',   settingsRouter);
 
-// ── Config endpoint (non-sensitive) ─────────────────────────────────────────
-// Exposes only the config values that the frontend needs to know.
+// ── Config endpoint — effective config (env defaults + saved settings) ───────
 app.get('/api/config', (_req, res) => {
-  res.json({
-    timezone: config.timezone,
-    stationName: config.transport.stationName,
-    refreshWeatherMinutes: config.weather.refreshMinutes,
-    refreshTransportSeconds: config.transport.refreshSeconds,
-    refreshCalendarMinutes: config.calendar.refreshMinutes,
-    refreshRssMinutes: config.rss.refreshMinutes,
-    holidayTown1: config.holidays.town1,
-    holidayTown2: config.holidays.town2,
-    backgroundIntervalSeconds: config.backgrounds.intervalSeconds,
-    rssItemDurationSeconds: config.rss.itemDurationSeconds,
-    holidaysMaxItems: config.holidays.maxItems,
-    calendarDisplayDays: config.calendar.displayDays,
-  });
+  const cfg = getEffectiveConfig();
+  res.json(cfg);
 });
 
 // ── API 404 — catch unmatched /api/* before static fallback ──────────────────

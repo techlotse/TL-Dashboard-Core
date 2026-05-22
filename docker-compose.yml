@@ -31,6 +31,9 @@ services:
       # Place your .jpg/.jpeg/.png/.webp photos in ./backgrounds/
       - ./backgrounds:/app/backgrounds:ro
 
+      # ── Persistent settings (UI-saved config survives restarts) ───────────
+      - ./data:/app/data
+
       # ── Google service account key (optional) ─────────────────────────────
       # Uncomment and update the path if using a Google service account JSON:
       # - /path/to/your/service-account-key.json:/run/secrets/google_sa_key.json:ro
