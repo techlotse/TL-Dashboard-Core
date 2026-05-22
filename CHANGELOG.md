@@ -5,6 +5,22 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.1] — 2026-05-22
+
+### Fixed
+- **METAR 502 errors** — fetch now retries up to 3 times with back-off before falling back to the last known good observation. The widget shows a `STALE` badge instead of an error during transient AWC API outages.
+
+### Changed
+- **GitHub Actions — Node.js 24** — updated all action versions ahead of the June 2 2026 forced migration:
+  - `docker/setup-qemu-action` v3 → v4
+  - `docker/setup-buildx-action` v3 → v4
+  - `docker/login-action` v3 → v4
+  - `docker/metadata-action` v5 → v6
+  - `docker/build-push-action` v5 → v6
+  - Added `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` workflow env variable
+
+---
+
 ## [0.3.0] — 2026-05-22
 
 ### Added
