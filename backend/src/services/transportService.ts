@@ -262,7 +262,7 @@ export async function fetchDepartures(): Promise<TransportData> {
 
     const station = stations[0];
     const stationId: string = station.id;
-    const stationName: string = station.name;
+    const resolvedName: string = station.name;
 
     // Step 2: fetch stationboard
     const boardRes = await axios.get(`${BASE_URL}/stationboard`, {
@@ -304,7 +304,7 @@ export async function fetchDepartures(): Promise<TransportData> {
     });
 
     return {
-      stationName,
+      stationName: resolvedName,
       stationId,
       departures,
       commute: await fetchCommuteData(),
