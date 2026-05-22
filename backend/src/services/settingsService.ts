@@ -26,6 +26,14 @@ export interface SavedSettings {
   rssItemDurationSeconds?: number;
   backgroundIntervalSeconds?: number;
   metarIcao?: string;
+  // Per-widget scale (1.0 = 100%)
+  scaleClock?: number;
+  scaleWeather?: number;
+  scaleTransport?: number;
+  scaleCalendar?: number;
+  scaleHolidays?: number;
+  scaleMetar?: number;
+  scaleNewsTicker?: number;
 }
 
 /** The full config shape returned to the frontend via /api/config */
@@ -45,6 +53,14 @@ export interface EffectiveConfig {
   rssItemDurationSeconds: number;
   backgroundIntervalSeconds: number;
   metarIcao: string;
+  // Per-widget scale (1.0 = 100%)
+  scaleClock: number;
+  scaleWeather: number;
+  scaleTransport: number;
+  scaleCalendar: number;
+  scaleHolidays: number;
+  scaleMetar: number;
+  scaleNewsTicker: number;
   // read-only (not overridable from UI)
   refreshWeatherMinutes: number;
   refreshTransportSeconds: number;
@@ -105,6 +121,14 @@ export function getEffectiveConfig(): EffectiveConfig {
     rssItemDurationSeconds:    s.rssItemDurationSeconds    ?? config.rss.itemDurationSeconds,
     backgroundIntervalSeconds: s.backgroundIntervalSeconds ?? config.backgrounds.intervalSeconds,
     metarIcao:                 s.metarIcao                 ?? config.metar.icao,
+    // Per-widget scale — news ticker defaults to 1.25 for better TV legibility
+    scaleClock:       s.scaleClock       ?? 1.0,
+    scaleWeather:     s.scaleWeather     ?? 1.0,
+    scaleTransport:   s.scaleTransport   ?? 1.0,
+    scaleCalendar:    s.scaleCalendar    ?? 1.0,
+    scaleHolidays:    s.scaleHolidays    ?? 1.0,
+    scaleMetar:       s.scaleMetar       ?? 1.0,
+    scaleNewsTicker:  s.scaleNewsTicker  ?? 1.25,
     // refresh intervals are env-only
     refreshWeatherMinutes:     config.weather.refreshMinutes,
     refreshTransportSeconds:   config.transport.refreshSeconds,

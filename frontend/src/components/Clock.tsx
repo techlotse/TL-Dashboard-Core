@@ -5,10 +5,11 @@ import { AppConfig } from '../types';
 
 interface Props {
   config: AppConfig;
+  scale?: number;
   onSettingsOpen?: () => void;
 }
 
-export default function Clock({ config, onSettingsOpen }: Props) {
+export default function Clock({ config, scale = 1, onSettingsOpen }: Props) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -24,7 +25,7 @@ export default function Clock({ config, onSettingsOpen }: Props) {
   const dateStr = format(zoned, 'EEEE, d MMMM yyyy', { timeZone: tz });
 
   return (
-    <div className="flex flex-col items-end select-none w-full">
+    <div className="flex flex-col items-end select-none w-full" style={{ zoom: scale }}>
       {/* Time */}
       <div className="flex items-baseline gap-1">
         <span className="text-7xl font-light tabular-nums tracking-tight leading-none text-white">

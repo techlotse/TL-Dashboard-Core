@@ -5,6 +5,7 @@ import { FetchState, CalendarData, CalendarEvent } from '../types';
 interface Props {
   state: FetchState<CalendarData>;
   displayDays?: number;
+  scale?: number;
   onSettingsOpen?: () => void;
 }
 
@@ -92,9 +93,9 @@ function Skeleton() {
   );
 }
 
-export default function CalendarWidget({ state, displayDays = 14, onSettingsOpen }: Props) {
+export default function CalendarWidget({ state, displayDays = 14, scale = 1, onSettingsOpen }: Props) {
   return (
-    <div className="panel p-4 h-full flex flex-col gap-3">
+    <div className="panel p-4 h-full flex flex-col gap-3" style={{ zoom: scale }}>
       <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex items-center gap-1.5">
         <Calendar size={12} strokeWidth={2} />
         Calendar

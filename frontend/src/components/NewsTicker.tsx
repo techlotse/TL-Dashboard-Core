@@ -6,12 +6,14 @@ interface Props {
   state: FetchState<RssData>;
   /** How long each headline is shown, in milliseconds. Default: 10 000 (10 s) */
   itemDurationMs?: number;
+  /** Content scale factor. Default: 1.25 */
+  scale?: number;
   onSettingsOpen?: () => void;
 }
 
 const FADE_MS = 400; // crossfade duration
 
-export default function NewsTicker({ state, itemDurationMs = 10_000, onSettingsOpen }: Props) {
+export default function NewsTicker({ state, itemDurationMs = 10_000, scale = 1.25, onSettingsOpen }: Props) {
   const items =
     state.status === 'success'
       ? state.data.items.filter((i) => i.title.length > 0)
@@ -67,7 +69,7 @@ export default function NewsTicker({ state, itemDurationMs = 10_000, onSettingsO
   }, [index, items.length, itemDurationMs]);
 
   return (
-    <div className="panel-tight px-3 py-0 flex flex-col overflow-hidden">
+    <div className="panel-tight px-3 py-0 flex flex-col overflow-hidden" style={{ zoom: scale }}>
       {/* Main row */}
       <div className="flex items-center gap-3 py-2">
         {/* Static label */}

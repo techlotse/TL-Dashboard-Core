@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.0] — 2026-05-22
+
+### Added
+- **METAR widget** — bottom-right panel showing decoded aviation weather (flight category, wind, visibility, QNH, sky conditions) for any ICAO airport code. No API key required (aviationweather.gov).
+- **Settings panel** — slide-in drawer accessible via a gear icon on every widget header. All previously env-var-only settings (weather location, SBB station, commute route, iCal URL, holidays, RSS feeds, METAR ICAO, slideshow interval, etc.) can now be changed at runtime and are persisted to `data/settings.json` on the server.
+- **Widget scaling** — every widget has a Scale (%) slider in its settings section. News Ticker defaults to 125% for better living-room legibility.
+- **Touch-friendly UI** — minimum 44 px tap targets on all interactive elements, `touch-action: manipulation` on buttons and inputs, active/focus states replacing hover-only interactions, larger input fields.
+- **`data/` volume** — persistent settings storage at `/app/data/settings.json`; survives container restarts and updates.
+
+### Changed
+- All data services now read key parameters (lat/lon, station name, iCal URL, holiday country/cantons, METAR ICAO) from `getEffectiveConfig()` at fetch time. Changing a setting in the UI takes effect on the next data refresh without a backend restart.
+- Cache keys include the effective setting value — switching locations/stations/countries automatically invalidates stale cache entries.
+
+---
+
 ## [0.2.0] — 2026-05-21
 
 ### Changed

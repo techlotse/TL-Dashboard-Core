@@ -7,6 +7,7 @@ interface Props {
   town1?: string;
   town2?: string;
   maxItems?: number;
+  scale?: number;
   onSettingsOpen?: () => void;
 }
 
@@ -67,9 +68,9 @@ function Skeleton() {
   );
 }
 
-export default function Holidays({ state, town1, town2, maxItems = 8, onSettingsOpen }: Props) {
+export default function Holidays({ state, town1, town2, maxItems = 8, scale = 1, onSettingsOpen }: Props) {
   return (
-    <div className="panel p-4 h-full flex flex-col gap-3">
+    <div className="panel p-4 h-full flex flex-col gap-3" style={{ zoom: scale }}>
       <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex items-center gap-1.5">
         <PartyPopper size={12} strokeWidth={2} />
         Public Holidays

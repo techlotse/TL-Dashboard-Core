@@ -5,6 +5,7 @@ import WeatherIcon from './WeatherIcon';
 
 interface Props {
   state: FetchState<WeatherData>;
+  scale?: number;
   onSettingsOpen?: () => void;
 }
 
@@ -38,9 +39,9 @@ function shortTime(isoStr: string): string {
   catch { return ''; }
 }
 
-export default function Weather({ state, onSettingsOpen }: Props) {
+export default function Weather({ state, scale = 1, onSettingsOpen }: Props) {
   return (
-    <div className="panel p-4 h-full flex flex-col gap-3">
+    <div className="panel p-4 h-full flex flex-col gap-3" style={{ zoom: scale }}>
       <div className="flex items-center gap-1.5">
         <h2 className="text-xs font-semibold uppercase tracking-widest text-white/40 flex-1">Weather</h2>
         {onSettingsOpen && (

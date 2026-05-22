@@ -37,6 +37,13 @@ const DEFAULT_CONFIG: AppConfig = {
   rssItemDurationSeconds: 10,
   backgroundIntervalSeconds: 15,
   metarIcao: 'LSZH',
+  scaleClock: 1.0,
+  scaleWeather: 1.0,
+  scaleTransport: 1.0,
+  scaleCalendar: 1.0,
+  scaleHolidays: 1.0,
+  scaleMetar: 1.0,
+  scaleNewsTicker: 1.25,
   refreshWeatherMinutes: 30,
   refreshTransportSeconds: 60,
   refreshCalendarMinutes: 5,
@@ -120,18 +127,19 @@ export default function App() {
         └──────────┴──────────────────────┴────────────────┘
         └──────────────────── NEWS TICKER ─────────────────────┘
       */}
-      <div className="absolute inset-0 z-10 p-4 pb-14">
+      <div className="absolute inset-0 z-10 p-4 pb-20">
         <div className="mx-auto grid h-full min-h-0 max-w-[1480px] grid-cols-[minmax(260px,330px)_minmax(420px,560px)_minmax(300px,370px)] grid-rows-[minmax(0,1fr)] justify-center gap-3">
 
           {/* Left — Weather + Calendar */}
           <div className="min-h-0 min-w-0 flex flex-col gap-3">
             <div className="h-[360px] min-h-[320px]">
-              <Weather state={weather} onSettingsOpen={() => openSettings('weather')} />
+              <Weather state={weather} scale={appConfig.scaleWeather} onSettingsOpen={() => openSettings('weather')} />
             </div>
             <div className="flex-1 min-h-0">
               <CalendarWidget
                 state={calendar}
                 displayDays={appConfig.calendarDisplayDays}
+                scale={appConfig.scaleCalendar}
                 onSettingsOpen={() => openSettings('calendar')}
               />
             </div>
@@ -139,14 +147,14 @@ export default function App() {
 
           {/* Center — SBB board */}
           <div className="min-h-0 min-w-0 justify-self-center w-full">
-            <Transport state={transport} onSettingsOpen={() => openSettings('transport')} />
+            <Transport state={transport} scale={appConfig.scaleTransport} onSettingsOpen={() => openSettings('transport')} />
           </div>
 
           {/* Right — Clock + Holidays + METAR */}
           <div className="min-h-0 min-w-0 flex flex-col gap-3">
             <div className="shrink-0">
               <div className="panel px-5 py-4">
-                <Clock config={appConfig} onSettingsOpen={() => openSettings('clock')} />
+                <Clock config={appConfig} scale={appConfig.scaleClock} onSettingsOpen={() => openSettings('clock')} />
               </div>
             </div>
             <div className="flex-1 min-h-0 overflow-hidden">
@@ -155,12 +163,14 @@ export default function App() {
                 town1={appConfig.holidayTown1}
                 town2={appConfig.holidayTown2}
                 maxItems={appConfig.holidaysMaxItems}
+                scale={appConfig.scaleHolidays}
                 onSettingsOpen={() => openSettings('holidays')}
               />
             </div>
             <div className="shrink-0">
               <MetarWidget
                 state={metar}
+                scale={appConfig.scaleMetar}
                 onSettingsOpen={() => openSettings('metar')}
               />
             </div>
@@ -174,6 +184,7 @@ export default function App() {
         <NewsTicker
           state={rss}
           itemDurationMs={appConfig.rssItemDurationSeconds * 1000}
+          scale={appConfig.scaleNewsTicker}
           onSettingsOpen={() => openSettings('rss')}
         />
       </div>

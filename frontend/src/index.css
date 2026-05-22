@@ -17,6 +17,38 @@
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
+
+  /* ── Touch optimisations ───────────────────────────────────────────────── */
+  button, [role="button"] {
+    /* Remove 300 ms tap delay on mobile/touch browsers */
+    touch-action: manipulation;
+    /* Suppress grey flash on tap (iOS/Android Chrome) */
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    /* Keep position for the ::after tap-target expansion below */
+    position: relative;
+  }
+  /* Expand hit area to ≥ 44 px in each dimension using a pseudo-element.
+     This gives good tap targets without distorting visual layout. */
+  button::after, [role="button"]::after {
+    content: '';
+    position: absolute;
+    top:    min(0px, calc((44px - 100%) / 2));
+    right:  min(0px, calc((44px - 100%) / 2));
+    bottom: min(0px, calc((44px - 100%) / 2));
+    left:   min(0px, calc((44px - 100%) / 2));
+  }
+  input, textarea, select {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent iOS auto-zoom on focus (font-size ≥ 16px) */
+    font-size: max(16px, 1em);
+  }
+  /* Prevent accidental text selection on repeated taps */
+  .panel, .panel-tight {
+    -webkit-user-select: none;
+    user-select: none;
+  }
 }
 
 @layer components {

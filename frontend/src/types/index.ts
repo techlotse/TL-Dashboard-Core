@@ -17,6 +17,14 @@ export interface AppConfig {
   rssItemDurationSeconds: number;
   backgroundIntervalSeconds: number;
   metarIcao: string;
+  // Per-widget scale (1.0 = 100%, 1.25 = 125%, etc.)
+  scaleClock: number;
+  scaleWeather: number;
+  scaleTransport: number;
+  scaleCalendar: number;
+  scaleHolidays: number;
+  scaleMetar: number;
+  scaleNewsTicker: number;
   // read-only (env-var only)
   refreshWeatherMinutes: number;
   refreshTransportSeconds: number;

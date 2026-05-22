@@ -4,6 +4,7 @@ import { FetchState, MetarData, SkyLayer } from '../types';
 
 interface Props {
   state: FetchState<MetarData>;
+  scale?: number;
   onSettingsOpen?: () => void;
 }
 
@@ -51,9 +52,9 @@ function Skeleton() {
   );
 }
 
-export default function MetarWidget({ state, onSettingsOpen }: Props) {
+export default function MetarWidget({ state, scale = 1, onSettingsOpen }: Props) {
   return (
-    <div className="panel p-4 flex flex-col gap-2.5">
+    <div className="panel p-4 flex flex-col gap-2.5" style={{ zoom: scale }}>
       {/* Header */}
       <div className="flex items-center gap-1.5">
         <PlaneTakeoff size={12} strokeWidth={2} className="text-white/40" />
