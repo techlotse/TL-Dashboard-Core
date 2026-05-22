@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.2] — 2026-05-22
+
+### Fixed
+- **METAR field names** — The AWC METAR JSON API uses different field names than assumed. Updated `metarService.ts` to read the correct fields per the official OpenAPI spec:
+  - `r.fltCat` (was `r.flightCategory`) — flight category (VFR / MVFR / IFR / LIFR)
+  - `r.wxString` (was `r.wx`) — present weather string (e.g. `-RA`, `TSRA`)
+  - `r.clouds` (was `r.skyCondition`) — sky condition layers array
+  - `r.obsTime` UNIX integer (was `r.reportTime` ISO string) — observation timestamp, with `reportTime` kept as fallback
+- METAR widget now correctly populates all fields instead of showing empty/default values.
+
+---
+
 ## [0.3.1] — 2026-05-22
 
 ### Fixed
@@ -89,6 +101,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Multi-arch Docker images (`linux/amd64`, `linux/arm64`) via GitHub Actions.
 - Full `.env` configuration with `.env.example` template.
 
+[0.3.2]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.3.1...v0.3.2
+[0.3.1]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.3.0...v0.3.1
+[0.3.0]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.0.1...v0.1.0
 [0.0.1]: https://github.com/techlotse/TL-Dashboard-Core/releases/tag/v0.0.1

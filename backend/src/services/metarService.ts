@@ -50,8 +50,8 @@ function parseResponse(data: unknown, icao: string): MetarData {
 
   const r = data[0];
 
-  const skyConditions: SkyLayer[] = Array.isArray(r.skyCondition)
-    ? r.skyCondition.map((s: { cover?: string; base?: number }) => ({
+  const skyConditions: SkyLayer[] = Array.isArray(r.clouds)
+    ? r.clouds.map((s: { cover?: string; base?: number }) => ({
         cover: s.cover ?? 'CLR',
         base:  s.base  ?? null,
       }))
@@ -61,9 +61,12 @@ function parseResponse(data: unknown, icao: string): MetarData {
   const wspd = typeof r.wspd === 'number' ? r.wspd : null;
   const wdir = wspd === 0 ? null : (typeof r.wdir === 'number' ? r.wdir : null);
 
-  const obsTime = r.reportTime
-    ? new Date(r.reportTime + ' UTC').toISOString()
-    : new Date().toISOString();
+  // obsTime is a UNIX integer per the AWC OpenAPI spec; reportTime is ISO-like fallback
+  const obsTime = typeof r.obsTime === 'number'
+    ? new Date(r.obsTime * 1000).toISOString()
+    : r.reportTime
+      ? new Date(r.reportTime + ' UTC').toISOString()
+      : new Date().toISOString();
 
   return {
     icao:           r.icaoId        ?? icao.toUpperCase(),
@@ -76,9 +79,9 @@ function parseResponse(data: unknown, icao: string): MetarData {
     wgst:           typeof r.wgst   === 'number' ? r.wgst  : null,
     visib:          r.visib?.toString() ?? '',
     altim:          typeof r.altim  === 'number' ? Math.round(r.altim) : null,
-    wx:             r.wx            ?? null,
+    wx:             r.wxString      ?? null,
     skyConditions,
-    flightCategory: r.flightCategory ?? 'VFR',
+    flightCategory: r.fltCat        ?? 'VFR',
     fetchedAt:      new Date().toISOString(),
   };
 }
