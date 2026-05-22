@@ -56,6 +56,7 @@ export interface MetarData {
   skyConditions: SkyLayer[];
   flightCategory: string;
   fetchedAt: string;
+  stale?: boolean;
 }
 
 // Weather

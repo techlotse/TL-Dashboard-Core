@@ -92,6 +92,11 @@ export default function MetarWidget({ state, scale = 1, onSettingsOpen }: Props)
               <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border ${fcClass} leading-none`}>
                 {d.flightCategory}
               </span>
+              {d.stale && (
+                <span className="text-[10px] text-yellow-400/60 font-mono leading-none" title="Showing last known data — API temporarily unavailable">
+                  STALE
+                </span>
+              )}
               <span className="ml-auto text-xs text-white/35 font-mono tabular-nums">
                 {obsTimeStr(d.obsTime)}
               </span>
