@@ -52,6 +52,18 @@ function lineSummary(option: CommuteConnection): string {
   return Array.from(new Set(lines.filter(Boolean))).slice(0, 3).join(' + ') || 'Train';
 }
 
+/** For connections with transfers, build a "via X" label from leg station names */
+function viaLabel(option: CommuteConnection): string | null {
+  if (option.transfers === 0 || option.legs.length < 2) return null;
+  // The transfer station is where the first leg arrives / second leg departs
+  const transferStop =
+    option.legs[0]?.arrivalStation ??
+    option.legs[1]?.departureStation ??
+    null;
+  if (!transferStop) return null;
+  return option.transfers === 1 ? `via ${transferStop}` : `via ${transferStop} +${option.transfers - 1}`;
+}
+
 const TRAIN_COLORS: Record<string, string> = {
   IC:  'bg-red-800/80 text-red-100',
   ICE: 'bg-red-700/80 text-red-100',
@@ -82,6 +94,7 @@ function DelayBadge({ delay }: { delay: number | null }) {
 }
 
 function ConnectionRow({ option }: { option: CommuteConnection }) {
+  const via = viaLabel(option);
   return (
     <div className="grid grid-cols-[88px_minmax(0,1fr)_auto] items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-white/[0.04]">
       <div className="font-mono tabular-nums leading-tight">
@@ -92,7 +105,8 @@ function ConnectionRow({ option }: { option: CommuteConnection }) {
         <div className="truncate text-sm font-medium text-white/90">{lineSummary(option)}</div>
         <div className="flex items-center gap-2 truncate text-xs text-white/35">
           {durationLabel(option) && <span>{durationLabel(option)}</span>}
-          <span>{option.transfers === 0 ? 'direct' : `${option.transfers} change${option.transfers > 1 ? 's' : ''}`}</span>
+          <span>{option.transfers === 0 ? 'direct' : `${option.transfers}×`}</span>
+          {via && <span className="truncate text-white/25">{via}</span>}
         </div>
       </div>
       <div className="flex min-w-[42px] justify-end gap-1 text-xs text-white/35">

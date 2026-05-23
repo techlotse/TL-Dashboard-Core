@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ---
 
+## [0.3.3] — 2026-05-22
+
+### Added
+- **Commute — "via" label** — single-transfer connections now show the intermediate stop name (e.g. "via Zürich HB") in the connection row so it's clear why a journey takes longer than a direct route would.
+
+### Changed
+- **Layout — fluid column gaps** — the transparent space between the three widget columns (and between panels within each column) now scales with the viewport using `clamp()`. On a 1080p screen gaps are ~26px; on 1440p ~34px; on 4K ~60px — the background photo shows through more clearly on large displays. Per-widget zoom scale is unaffected.
+- **News ticker bar padding** also scales fluidly (`clamp(6px, 0.8vw, 16px)`) to match the grid.
+- **Grid max-width** raised from 1480px → 1800px so the layout fills more of the screen on 1920+ monitors.
+- **Commute — smart time selection** — the commute window now distinguishes three states:
+  - *Before* the configured time → show connections from that time
+  - *Within the window* (past target but within `COMMUTE_WINDOW_MINUTES`) → show connections from **now**, so the next available trains are always visible during the active commute window
+  - *After the window* → show tomorrow's connections at the configured time
+- **Commute — station pre-resolution** — both commute endpoints (from and to) are now resolved to canonical station IDs via the `/locations` API before querying `/connections`, eliminating ambiguous name-match failures (e.g. "Lupfig" resolving to the wrong stop).
+- **Commute — connections limit** raised to `maxOptions + 2` (minimum 5) so minor parse gaps don't shrink the visible list below the configured count.
+- **`CommuteLeg`** now carries `departureStation` and `arrivalStation` fields populated from the API's `section.departure.station.name` / `section.arrival.station.name`.
+
+### Fixed
+- Return-trip commute showing no results or only distant options during the active evening window — now uses current time as the query anchor when inside the window.
+
+---
+
 ## [0.3.2] — 2026-05-22
 
 ### Fixed
@@ -101,6 +123,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Multi-arch Docker images (`linux/amd64`, `linux/arm64`) via GitHub Actions.
 - Full `.env` configuration with `.env.example` template.
 
+[0.3.3]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.3.2...v0.3.3
 [0.3.2]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/techlotse/TL-Dashboard-Core/compare/v0.2.0...v0.3.0

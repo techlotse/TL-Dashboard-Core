@@ -127,11 +127,27 @@ export default function App() {
         └──────────┴──────────────────────┴────────────────┘
         └──────────────────── NEWS TICKER ─────────────────────┘
       */}
-      <div className="absolute inset-0 z-10 p-4 pb-20">
-        <div className="mx-auto grid h-full min-h-0 max-w-[1480px] grid-cols-[minmax(260px,330px)_minmax(420px,560px)_minmax(300px,370px)] grid-rows-[minmax(0,1fr)] justify-center gap-3">
+      {/*
+        Fluid gap: clamp(min, viewport%, max) so on bigger screens the transparent
+        spaces between panels grow, letting the background photo breathe through.
+        Blocks keep their own per-widget zoom; only the void between them changes.
+      */}
+      <div
+        className="absolute inset-0 z-10"
+        style={{
+          padding: 'clamp(10px, 1.2vw, 28px) clamp(10px, 1.2vw, 28px) clamp(64px, 5vw, 92px)',
+        }}
+      >
+        <div
+          className="mx-auto grid h-full min-h-0 max-w-[1800px] grid-cols-[minmax(260px,330px)_minmax(420px,560px)_minmax(300px,370px)] grid-rows-[minmax(0,1fr)] justify-center"
+          style={{ gap: 'clamp(10px, 2vw, 60px)' }}
+        >
 
           {/* Left — Weather + Calendar */}
-          <div className="min-h-0 min-w-0 flex flex-col gap-3">
+          <div
+            className="min-h-0 min-w-0 flex flex-col"
+            style={{ gap: 'clamp(8px, 1.5vw, 40px)' }}
+          >
             <div className="h-[360px] min-h-[320px]">
               <Weather state={weather} scale={appConfig.scaleWeather} onSettingsOpen={() => openSettings('weather')} />
             </div>
@@ -151,7 +167,10 @@ export default function App() {
           </div>
 
           {/* Right — Clock + Holidays + METAR */}
-          <div className="min-h-0 min-w-0 flex flex-col gap-3">
+          <div
+            className="min-h-0 min-w-0 flex flex-col"
+            style={{ gap: 'clamp(8px, 1.5vw, 40px)' }}
+          >
             <div className="shrink-0">
               <div className="panel px-5 py-4">
                 <Clock config={appConfig} scale={appConfig.scaleClock} onSettingsOpen={() => openSettings('clock')} />
@@ -180,7 +199,10 @@ export default function App() {
       </div>
 
       {/* ── News ticker — fixed at the bottom ─────────────────────────────── */}
-      <div className="absolute bottom-0 left-0 right-0 z-20 p-3">
+      <div
+        className="absolute bottom-0 left-0 right-0 z-20"
+        style={{ padding: 'clamp(6px, 0.8vw, 16px)' }}
+      >
         <NewsTicker
           state={rss}
           itemDurationMs={appConfig.rssItemDurationSeconds * 1000}

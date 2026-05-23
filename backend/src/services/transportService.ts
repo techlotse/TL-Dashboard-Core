@@ -25,8 +25,10 @@ export interface Departure {
 export interface CommuteLeg {
   name: string;
   category: string;
-  departure: string;
-  arrival: string;
+  departure: string;       // ISO timestamp
+  arrival: string;         // ISO timestamp
+  departureStation: string | null;
+  arrivalStation: string | null;
   departurePlatform: string | null;
   arrivalPlatform: string | null;
 }
@@ -101,13 +103,34 @@ function addDays(date: string, days: number): string {
   return next.toISOString().slice(0, 10);
 }
 
-function serviceDateForTime(time: string): string {
+/**
+ * Returns the date and departure time to use for the connections API query.
+ *
+ * Three zones relative to the configured target time (e.g. "17:30"):
+ *  BEFORE  → use target time today  (e.g. it's 14:00, show connections from 17:30)
+ *  WITHIN  → use current time today  (e.g. it's 18:00, show next trains from now)
+ *  AFTER   → use target time tomorrow (e.g. it's 22:00, show tomorrow's 17:30)
+ */
+function serviceDateAndTime(targetTime: string): { date: string; time: string } {
   const { date, minutes } = zonedDateParts();
-  const [hours, mins] = time.split(':').map(Number);
+  const [hours, mins] = targetTime.split(':').map(Number);
   const targetMinutes = hours * 60 + mins;
-  return minutes > targetMinutes + config.commute.windowMinutes
-    ? addDays(date, 1)
-    : date;
+
+  if (minutes > targetMinutes + config.commute.windowMinutes) {
+    // Past the window — show tomorrow at configured time
+    return { date: addDays(date, 1), time: targetTime };
+  }
+  if (minutes >= targetMinutes) {
+    // Within the window, past the target — show connections from NOW
+    const nowH = Math.floor(minutes / 60);
+    const nowM = minutes % 60;
+    return {
+      date,
+      time: `${String(nowH).padStart(2, '0')}:${String(nowM).padStart(2, '0')}`,
+    };
+  }
+  // Before the target time — show from target time
+  return { date, time: targetTime };
 }
 
 function parseDurationMinutes(duration: string): number | null {
@@ -136,6 +159,8 @@ function mapConnection(connection: any): CommuteConnection {
       category: String(section.journey?.category ?? ''),
       departure: section.departure?.departure ?? '',
       arrival: section.arrival?.arrival ?? '',
+      departureStation: section.departure?.station?.name ?? null,
+      arrivalStation: section.arrival?.station?.name ?? null,
       departurePlatform: section.departure?.platform ?? null,
       arrivalPlatform: section.arrival?.platform ?? null,
     }));
@@ -164,11 +189,12 @@ function failedWindow(
   time: string,
   err: unknown,
 ): CommuteWindow {
+  const { date } = serviceDateAndTime(time);
   return {
     label,
     from,
     to,
-    date: serviceDateForTime(time),
+    date,
     targetTime: time,
     options: [],
     error: String(err),
@@ -177,64 +203,91 @@ function failedWindow(
 
 async function fetchCommuteWindow(
   label: 'outbound' | 'return',
-  from: string,
-  to: string,
-  time: string,
+  fromId: string,
+  toId: string,
+  fromLabel: string,
+  toLabel: string,
+  targetTime: string,
 ): Promise<CommuteWindow> {
-  const date = serviceDateForTime(time);
+  const { date, time } = serviceDateAndTime(targetTime);
+  // Request a few extra so minor parse failures don't shrink the visible list
+  const limit = Math.max(config.commute.maxOptions + 2, 5);
+
   const { data } = await axios.get(`${BASE_URL}/connections`, {
-    params: {
-      from,
-      to,
-      date,
-      time,
-      limit: config.commute.maxOptions,
-    },
-    timeout: 10000,
+    params: { from: fromId, to: toId, date, time, limit },
+    timeout: 12000,
   });
 
   const options = (data.connections ?? []).map(mapConnection);
   return {
     label,
-    from: data.from?.name ?? from,
-    to: data.to?.name ?? to,
+    from: data.from?.name ?? fromLabel,
+    to: data.to?.name ?? toLabel,
     date,
-    targetTime: time,
-    options,
+    targetTime,
+    options: options.slice(0, config.commute.maxOptions),
   };
+}
+
+/**
+ * Resolve a station name to its canonical ID via the /locations endpoint.
+ * Returns the resolved ID and display name.
+ * Falls back to the raw name string on failure (the API accepts names too).
+ */
+async function resolveStation(name: string): Promise<{ id: string; label: string }> {
+  try {
+    const { data } = await axios.get(`${BASE_URL}/locations`, {
+      params: { query: name, type: 'station' },
+      timeout: 8000,
+    });
+    const station = data?.stations?.[0];
+    if (station?.id) {
+      logger.info(`Resolved station "${name}" → id=${station.id} name="${station.name}"`);
+      return { id: station.id, label: station.name ?? name };
+    }
+  } catch (err) {
+    logger.warn(`Station resolution failed for "${name}", using name as-is: ${err}`);
+  }
+  return { id: name, label: name };
 }
 
 async function fetchCommuteData(): Promise<CommuteData | null> {
   const cfg = getEffectiveConfig();
-  const from = (config.commute.fromStation || cfg.stationName).trim();
-  const to = (cfg.commuteToStation || config.commute.toStation).trim();
+  const fromName = (config.commute.fromStation || cfg.stationName).trim();
+  const toName = (cfg.commuteToStation || config.commute.toStation).trim();
 
-  if (!config.commute.enabled || !from || !to) return null;
+  if (!config.commute.enabled || !fromName || !toName) return null;
 
   const departureTime = normaliseTime(config.commute.departureTime, '07:30');
   const returnTime = normaliseTime(config.commute.returnTime, '17:30');
 
-  logger.info(`Fetching commute options: ${from} -> ${to}`);
+  logger.info(`Fetching commute: "${fromName}" ↔ "${toName}"`);
+
+  // Pre-resolve both station names to IDs in parallel for accurate routing
+  const [fromStation, toStation] = await Promise.all([
+    resolveStation(fromName),
+    resolveStation(toName),
+  ]);
 
   const [outboundResult, inboundResult] = await Promise.allSettled([
-    fetchCommuteWindow('outbound', from, to, departureTime),
-    fetchCommuteWindow('return', to, from, returnTime),
+    fetchCommuteWindow('outbound', fromStation.id, toStation.id, fromStation.label, toStation.label, departureTime),
+    fetchCommuteWindow('return', toStation.id, fromStation.id, toStation.label, fromStation.label, returnTime),
   ]);
 
   const outbound = outboundResult.status === 'fulfilled'
     ? outboundResult.value
-    : failedWindow('outbound', from, to, departureTime, outboundResult.reason);
+    : failedWindow('outbound', fromStation.label, toStation.label, departureTime, outboundResult.reason);
 
   const inbound = inboundResult.status === 'fulfilled'
     ? inboundResult.value
-    : failedWindow('return', to, from, returnTime, inboundResult.reason);
+    : failedWindow('return', toStation.label, fromStation.label, returnTime, inboundResult.reason);
 
   if (outboundResult.status === 'rejected') logger.warn(`Outbound commute fetch failed: ${outboundResult.reason}`);
   if (inboundResult.status === 'rejected') logger.warn(`Return commute fetch failed: ${inboundResult.reason}`);
 
   return {
-    from,
-    to,
+    from: fromStation.label,
+    to: toStation.label,
     departureTime,
     returnTime,
     outbound,

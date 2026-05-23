@@ -113,8 +113,10 @@ export interface Departure {
 export interface CommuteLeg {
   name: string;
   category: string;
-  departure: string;
-  arrival: string;
+  departure: string;       // ISO timestamp
+  arrival: string;         // ISO timestamp
+  departureStation: string | null;
+  arrivalStation: string | null;
   departurePlatform: string | null;
   arrivalPlatform: string | null;
 }
